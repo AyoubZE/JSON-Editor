@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Editor with Nested Objects</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-1">
+        <h1>JSON Editor with Nested Objects</h1>
+        <input type="file" id="fileInput" accept=".json" />
+        <button id="loadJson" class="btn btn-primary mt-2">Load JSON</button>
+        <button id="exportJson" class="btn btn-success mt-2">Export JSON</button>
+        <div id="jsonTableContainer" class="mt-4"></div>
+    </div>
+
+    <script>
+        let loadedJson; // Global variable to store the loaded JSON
+
+        $(document).ready(function() {
+            // Load JSON file
+            $('#loadJson').click(function() {
+                const fileInput = document.getElementById('fileInput');
+                if (fileInput.files.length === 0) {
+                    alert("Please select a JSON file.");
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    loadedJson = JSON.parse(event.target.result); // Store loaded JSON
+                    renderJsonTable(loadedJson);
+                };
+                
+                reader.readAsText(file);
+            });
+
+            // Render JSON into a single table
+            function renderJsonTable(data) {
+                const jsonTableContainer = $('#jsonTableContainer');
+                const table = $('<table class="table table-bordered mt-1"></table>');
+                const tableHeader = `<thead><tr><th width="25%">Key</th><th width="25%">Value</th><th width="50%">Edit</th></tr></thead>`;
+                const tableBody = $('<tbody></tbody>');
+                
+                // Create table rows for the first-level keys
+                $.each(data, function(key, value) {
+                    const hiddenLevel1 = `<input type="hidden" class="level-1" value="${key}" />`;
+                    tableBody.append(hiddenLevel1);
+                    flattenJson(value, tableBody, key, key); // Pass both parent and current key
+                });
+
+                table.append(tableHeader);
+                table.append(tableBody);
+                jsonTableContainer.empty().append(table);
+            }
+
+            // Flatten the JSON object
+            function flattenJson(obj, tableBody, parentKey, fullKey) {
+                // Iterate through the object
+                $.each(obj, function(key, value) {
+                    const currentKey = key; // Use the immediate key for display
+                    if (typeof value === 'object' && value !== null) {
+                        // If it's an object, create a hidden input for its parent
+                        const hiddenLevel2 = `<input type="hidden" class="level-2" value="${fullKey}" />`;
+                        tableBody.append(hiddenLevel2);
+                        flattenJson(value, tableBody, fullKey, currentKey); // Iterate deeper with current parent
+                    } else {
+                        // Create the input field for non-object values
+                        const inputField = `<input type="text" class="form-control" value="${value}" 
+                                            data-key="${currentKey}" 
+                                            data-parent="${parentKey}" 
+                                            data-grandparent="${fullKey}" />`;
+                        const tableRow = `<tr>
+                                            <td>${fullKey} -> ${currentKey}</td>
+                                            <td>${value}</td>
+                                            <td>${inputField}</td>
+                                          </tr>`;
+                        tableBody.append(tableRow);
+                    }
+                });
+            }
+
+            // Export the modified JSON
+            $('#exportJson').click(function() {
+                if (!loadedJson) {
+                    alert("No JSON loaded. Please load a JSON file first.");
+                    return;
+                }
+
+                const mainKey = Object.keys(loadedJson)[0]; // Get the first-level key from the loaded JSON
+                const updatedJson = { [mainKey]: {} }; // Start with the main key
+
+                $('#jsonTableContainer table tbody tr').each(function() {
+                    const inputField = $(this).find('input[type="text"]');
+                    const currentKey = inputField.data('key'); // Current key
+                    const parentKey = inputField.data('parent'); // Immediate parent
+                    const grandparentKey = inputField.data('grandparent'); // Grandparent
+
+                    const inputValue = inputField.val();
+                    if (inputValue) {
+                        // Ensure that the parent exists
+                        if (!updatedJson[mainKey][parentKey]) {
+                            updatedJson[mainKey][parentKey] = {}; // Create parent object if not exists
+                        }
+
+                        if (grandparentKey === mainKey) {
+                            // If the grandparent is the main key, set the value directly
+                            updatedJson[mainKey][currentKey] = inputValue; // Directly set the value
+                        } else {
+                            // For deeper nesting, ensure parent exists under grandparent
+                            if (!updatedJson[mainKey][grandparentKey]) {
+                                updatedJson[mainKey][grandparentKey] = {};
+                            }
+                            updatedJson[mainKey][grandparentKey][currentKey] = inputValue; // Set value
+                        }
+                    }
+                });
+
+                const jsonString = JSON.stringify(updatedJson, null, 2);
+                downloadJsonFile(jsonString, 'updated_data.json');
+            });
+
+            // Download the JSON file
+            function downloadJsonFile(jsonString, fileName) {
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                link.click();
+            }
+        });
+    </script>
+</body>
+</html>

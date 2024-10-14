@@ -1,0 +1,12 @@
+{
+  "fruit.basket": {
+    "apple": {
+      "color": "red",
+      "taste": "sweet",
+      "info": {
+        "origin": "USA",
+        "season": "fall"
+      }
+    }
+  }
+}
