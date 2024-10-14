@@ -37,6 +37,7 @@ A simple web-based JSON editor that allows users to upload, edit, and export JSO
     }
   }
 }
+```
 
 Demo
 Here's how the editor looks and functions:
