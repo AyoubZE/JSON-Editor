@@ -34,8 +34,7 @@ A simple web-based JSON editor that allows users to upload, edit, and export JSO
         "origin": "USA",
         "season": "fall"
       }
-    },
-    ...
+    }
   }
 }
 
