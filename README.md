@@ -50,7 +50,7 @@ Clone the repository:
 
 bash
 Copy code
-git clone https://github.com/your-username/json-editor.git
+git clone https://github.com/AyoubZE/JSON-Editor.git
 Open index.html in your web browser.
 
 That's it! No additional setup is required.
