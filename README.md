@@ -51,7 +51,7 @@ Clone the repository:
 bash
 Copy code
 git clone https://github.com/AyoubZE/JSON-Editor.git
-Open index.html in your web browser.
+Open JSON Editor.html in your web browser.
 
 That's it! No additional setup is required.
 
